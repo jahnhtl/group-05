@@ -11,7 +11,7 @@
 
 // Schwellenwerte für die IR-Sensoren (passen Sie diese an Ihre Bedürfnisse an)
 #define threshold1 400
-#define threshold2 250
+#define threshold2 150
 
 // PWM-Geschwindigkeitspin-Definitionen
 #define pwmMotor1 9
@@ -20,7 +20,7 @@
 // Pin-Definition für den Button
 #define buttonPin 2
 
-// Geschwindigkeiten für die Motoren (passen Sie diese an Ihre Bedürfnisse an)
+// Geschwindigkeitswerte für Motoren
 #define baseSpeed 150
 #define turnSpeed 100
 
@@ -54,22 +54,38 @@ void loop() {
     int centerValue = analogRead(centerIR);
     int rightValue = analogRead(rightIR);
 
-    // Entscheidungen basierend auf den IR-Sensorwerten
-    if (centerValue < threshold1) {
+    // Mittenzentrierung (Mittenregelung)
+    int difference = leftValue - rightValue;
+
+    if (abs(difference) < threshold2) {
       // Geradeaus fahren
       driveForward();
     } 
     else {
-      if (rightValue > threshold2) {
-        turnLeft();
+      if (difference > 0) {
+        // Zu weit links, nach rechts lenken
+        turnRight();
       }     
-      else if (leftValue > threshold2) {
-        turnRight ();
+      else {
+        // Zu weit rechts, nach links lenken
+        turnLeft();
       }
     }
+
+    // Zusätzlich zur Mittenregelung kannst du auch den Center-Sensor berücksichtigen
+    if (centerValue < threshold1) {
+      // Falls der Center-Sensor einen niedrigen Wert hat, anhalten oder rückwärts fahren
+      stopMotors(); // Ändere dies nach Bedarf
+
+      // Optional: Rückwärtsfahren
+      reverse();
+    }
   }
-  
- }
+  else {
+    // Das Auto ist gestoppt, Motoren anhalten
+    stopMotors();
+  }
+}
 
 // Funktionen für die Fahrzeugbewegungen
 void driveForward() {
@@ -81,8 +97,6 @@ void driveForward() {
   digitalWrite(motor2pin2, LOW);
   analogWrite(pwmMotor2, baseSpeed);
 }
-
-
 
 void turnLeft() {
   digitalWrite(motor1pin1, LOW);
@@ -113,6 +127,17 @@ void stopMotors() {
   digitalWrite(motor2pin1, LOW);
   digitalWrite(motor2pin2, LOW);
   analogWrite(pwmMotor2, 0);
+}
+
+// Neues Unterprogramm für das Rückwärtsfahren
+void reverse() {
+  digitalWrite(motor1pin1, LOW);
+  digitalWrite(motor1pin2, HIGH);
+  analogWrite(pwmMotor1, baseSpeed);
+
+  digitalWrite(motor2pin1, LOW);
+  digitalWrite(motor2pin2, HIGH);
+  analogWrite(pwmMotor2, baseSpeed);
 }
 
 // Interrupt Service Routine für den Button (Starten/Stoppen)
