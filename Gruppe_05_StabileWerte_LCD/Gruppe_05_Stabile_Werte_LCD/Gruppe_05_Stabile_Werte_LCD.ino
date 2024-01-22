@@ -6,8 +6,8 @@
 
 // Define analog pin numbers for sensors
 const int frontSensorPin = A1;
-const int leftSensorPin = A0;
-const int rightSensorPin = A2;
+const int leftSensorPin = A2;
+const int rightSensorPin = A0;
 
 // Initialize the LCD with the I2C address
 LiquidCrystal_I2C lcd(I2C_ADDR, 16, 2);
@@ -18,6 +18,8 @@ void setup() {
 
   // Initialize the LCD
   lcd.begin(16, 2);
+
+  lcd.backlight();
 
   // Display initial message on the LCD
   lcd.print("Sensors:");
@@ -47,3 +49,7 @@ void loop() {
   // Add a delay for better readability on the LCD
   delay(1000);
 }
+
+
+
+// rechter Sensor Spinnt 
