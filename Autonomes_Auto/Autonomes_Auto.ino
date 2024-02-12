@@ -1,3 +1,4 @@
+ 
 // Pin-Definitionen für Motoren
 #define motor1pin1 8
 #define motor1pin2 7
@@ -8,10 +9,7 @@
 #define leftIR A0
 #define centerIR A1
 #define rightIR A2
-
-// Schwellenwerte für die IR-Sensoren (passen Sie diese an Ihre Bedürfnisse an)
-#define threshold1 400
-#define threshold2 150
+#define frontIR A3
 
 // PWM-Geschwindigkeitspin-Definitionen
 #define pwmMotor1 9
@@ -53,11 +51,13 @@ void loop() {
     int leftValue = analogRead(leftIR);
     int centerValue = analogRead(centerIR);
     int rightValue = analogRead(rightIR);
+    int frontValue = analogRead(frontIR);
 
     // Mittenzentrierung (Mittenregelung)
-    int difference = leftValue - rightValue;
+    int average = (leftValue + centerValue + rightValue) / 3;
+    int difference = centerValue - average;
 
-    if (abs(difference) < threshold2) {
+    if (abs(difference) < 50) {
       // Geradeaus fahren
       driveForward();
     } 
@@ -73,12 +73,11 @@ void loop() {
     }
 
     // Zusätzlich zur Mittenregelung kannst du auch den Center-Sensor berücksichtigen
-    if (centerValue < threshold1) {
-      // Falls der Center-Sensor einen niedrigen Wert hat, anhalten oder rückwärts fahren
+    if (frontValue < 300) {
+      // Falls der Frontsensor ein Hindernis erkennt, anhalten oder verlangsamen
       stopMotors(); // Ändere dies nach Bedarf
 
-      // Optional: Rückwärtsfahren
-      reverse();
+      // Optional: Rückwärtsfahren oder andere Hindernisvermeidungsaktionen
     }
   }
   else {
@@ -127,17 +126,6 @@ void stopMotors() {
   digitalWrite(motor2pin1, LOW);
   digitalWrite(motor2pin2, LOW);
   analogWrite(pwmMotor2, 0);
-}
-
-// Neues Unterprogramm für das Rückwärtsfahren
-void reverse() {
-  digitalWrite(motor1pin1, LOW);
-  digitalWrite(motor1pin2, HIGH);
-  analogWrite(pwmMotor1, baseSpeed);
-
-  digitalWrite(motor2pin1, LOW);
-  digitalWrite(motor2pin2, HIGH);
-  analogWrite(pwmMotor2, baseSpeed);
 }
 
 // Interrupt Service Routine für den Button (Starten/Stoppen)
