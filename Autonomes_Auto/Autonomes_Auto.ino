@@ -43,6 +43,17 @@ void setup() {
 
   // Attach Interrupt für den Button
   attachInterrupt(digitalPinToInterrupt(buttonPin), toggleCar, FALLING);
+
+  uint16_t ir_sensor_front_raw, ir_sensor_right_raw, ir_sensor_left_raw;
+  uint16_t ir_sensor_front_new, ir_sensor_right_new, ir_sensor_left_new;
+
+  ir_sensor_front_new = analogRead(frontIR);
+  ir_sensor_front_new = (uint16_t) (16256 / (ir_sensor_front_raw +22.8)) - 8;
+
+  if(ir_sensor_front_new > 150)
+    ir_sensor_front_new = 151;
+    else if(ir_sensor_front_new < 20)
+    ir_sensor_front_new = 19;
 }
 
 void loop() {
@@ -53,15 +64,13 @@ void loop() {
     int rightValue = analogRead(rightIR);
     int frontValue = analogRead(frontIR);
 
+    
+
     // Mittenzentrierung (Mittenregelung)
     int average = (leftValue + centerValue + rightValue) / 3;
     int difference = centerValue - average;
 
-    if (abs(difference) < 50) {
-      // Geradeaus fahren
-      driveForward();
-    } 
-    else {
+    if (frontValue < 300)  {
       if (difference > 0) {
         // Zu weit links, nach rechts lenken
         turnRight();
@@ -71,19 +80,6 @@ void loop() {
         turnLeft();
       }
     }
-
-    // Zusätzlich zur Mittenregelung kannst du auch den Center-Sensor berücksichtigen
-    if (frontValue < 300) {
-      // Falls der Frontsensor ein Hindernis erkennt, anhalten oder verlangsamen
-      stopMotors(); // Ändere dies nach Bedarf
-
-      // Optional: Rückwärtsfahren oder andere Hindernisvermeidungsaktionen
-    }
-  }
-  else {
-    // Das Auto ist gestoppt, Motoren anhalten
-    stopMotors();
-  }
 }
 
 // Funktionen für die Fahrzeugbewegungen
